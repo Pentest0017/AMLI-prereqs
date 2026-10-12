@@ -1,0 +1,3 @@
+# NOT published: Microsoft's SQL Server image licence does not allow public redistribution.
+# Pull it from MCR on a machine that can, or use the external Windows SQL Server instead.
+mcr.microsoft.com/mssql/server:2022-latest   mcr.microsoft.com/mssql/server:2022-latest
