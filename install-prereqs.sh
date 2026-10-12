@@ -93,12 +93,15 @@ else
   echo "firewalld not active - skipped (open 8443/tcp yourself if another firewall is used)."
 fi
 
-say "6/6 Pre-packed images (optional)"
-if [ -n "${AMLI_IMAGES_REPO:-}" ]; then
+say "6/6 Bundled container images"
+if [ -d "$HERE/payload/base" ] && [ -d "$HERE/payload/app" ]; then
+  echo "Loading images shipped inside this repo (./payload) - no registry or release download needed."
+  bash "$HERE/load-images.sh" --local "$HERE/payload/base"
+  bash "$HERE/load-images.sh" --local "$HERE/payload/app"
+elif [ -n "${AMLI_IMAGES_REPO:-}" ]; then
   bash "$HERE/load-images.sh" "$AMLI_IMAGES_REPO" "${AMLI_IMAGES_TAG:-images-base-v1}"
 else
-  echo "Skipped. To load images from a GitHub Release run, for example:"
-  echo "  ./load-images.sh <owner>/<repo> images-base-v1"
+  echo "No ./payload folder found. Make sure the clone is complete (git pull)."
 fi
 
 say "Done"
