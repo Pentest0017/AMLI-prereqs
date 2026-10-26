@@ -91,9 +91,15 @@ fi
 say "5/6 Firewall"
 if command -v firewall-cmd >/dev/null 2>&1 && $SUDO firewall-cmd --state >/dev/null 2>&1; then
   $SUDO firewall-cmd --permanent --add-port=8443/tcp && $SUDO firewall-cmd --reload
-  echo "Opened 8443/tcp"
+  echo "Opened 8443/tcp (firewalld)"
+elif command -v ufw >/dev/null 2>&1 && $SUDO ufw status 2>/dev/null | grep -q "Status: active"; then
+  $SUDO ufw allow 8443/tcp
+  echo "Opened 8443/tcp (ufw)"
+elif command -v iptables >/dev/null 2>&1 && $SUDO iptables -S INPUT 2>/dev/null | grep -q -- '-P INPUT \(DROP\|REJECT\)'; then
+  $SUDO iptables -C INPUT -p tcp --dport 8443 -j ACCEPT 2>/dev/null || $SUDO iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
+  echo "Opened 8443/tcp (iptables, NOT persistent across reboot - use your distro's iptables-save if needed)"
 else
-  echo "firewalld not active - skipped (open 8443/tcp yourself if another firewall is used)."
+  echo "No active host firewall detected - nothing to open."
 fi
 
 say "6/6 Bundled container images"
