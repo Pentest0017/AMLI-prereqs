@@ -48,6 +48,9 @@ else
   if ls "$HERE"/rpms/*.rpm >/dev/null 2>&1; then
     echo "Using offline packages from ./rpms"
     $SUDO dnf install -y --disablerepo='*' "$HERE"/rpms/*.rpm 2>/dev/null || $SUDO rpm -Uvh --replacepkgs "$HERE"/rpms/*.rpm
+  elif ls "$HERE"/debs/*.deb >/dev/null 2>&1; then
+    echo "Using offline packages from ./debs"
+    $SUDO dpkg -i "$HERE"/debs/*.deb
   elif command -v dnf >/dev/null 2>&1;     then $SUDO dnf install -y podman
   elif command -v yum >/dev/null 2>&1;     then $SUDO yum install -y podman
   elif command -v apt-get >/dev/null 2>&1; then $SUDO apt-get update && $SUDO apt-get install -y podman
