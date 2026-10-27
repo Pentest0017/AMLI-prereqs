@@ -28,7 +28,20 @@ else
 fi
 
 echo "Verifying checksums"
-( cd "$DIR" && sha256sum -c SHA256SUMS ) || fail "Checksum mismatch - delete $DIR and retry."
+if ! ( cd "$DIR" && sha256sum -c SHA256SUMS --quiet ); then
+  # Damaged or truncated parts: re-download just those from GitHub, then verify again
+  RAW="https://github.com/${AMLI_IMAGES_REPO:-Pentest0017/AMLI-prereqs}/raw/main/${DIR#"$HERE"/}"
+  for attempt in 1 2 3; do
+    bad=$(cd "$DIR" && sha256sum -c SHA256SUMS 2>/dev/null | awk -F: '/FAILED/ {print $1}')
+    [ -z "$bad" ] && break
+    for f in $bad; do
+      echo "Repairing $f (attempt $attempt)"
+      rm -f "$DIR/$f"
+      curl -fL --retry 10 --retry-delay 5 -C - -o "$DIR/$f" "$RAW/$f" || true
+    done
+  done
+  ( cd "$DIR" && sha256sum -c SHA256SUMS --quiet ) || fail "Checksum still wrong after re-download - the network is altering the files. Copy $DIR from your PC by USB/scp."
+fi
 
 echo "Loading images into $ENGINE (this takes a few minutes)"
 parts=$(ls "$DIR"/*.part-* 2>/dev/null | sort) || true
